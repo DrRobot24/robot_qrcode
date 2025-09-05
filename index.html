@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Il Mio Generatore QR Code</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.2em;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+            text-align: left;
+        }
+
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e1e1;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="text"]:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .size-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .size-group {
+            flex: 1;
+        }
+
+        .size-group label {
+            text-align: center;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            margin: 10px 0;
+        }
+
+        .size-display {
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .generate-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            margin-bottom: 30px;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .generate-btn:active {
+            transform: translateY(0);
+        }
+
+        .qr-result {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            display: none;
+        }
+
+        .qr-result.show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        #qrcode {
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        .download-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            margin-top: 15px;
+        }
+
+        .download-btn:hover {
+            background: #218838;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 5px;
+            text-align: left;
+        }
+
+        .info-box h3 {
+            color: #1976d2;
+            margin-bottom: 8px;
+        }
+
+        .info-box p {
+            color: #666;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 QR Generator</h1>
+        <p class="subtitle">Il tuo generatore personale - 100% offline</p>
+        
+        <div class="input-group">
+            <label for="qrText">Cosa vuoi trasformare in QR?</label>
+            <textarea 
+                id="qrText" 
+                placeholder="Scrivi qui: URL, testo, numero di telefono, email...&#10;&#10;Esempi:&#10;https://www.google.com&#10;Ciao, questo è il mio biglietto da visita!&#10;tel:+393201234567&#10;mailto:tuaemail@esempio.com"
+            ></textarea>
+        </div>
+
+        <div class="size-controls">
+            <div class="size-group">
+                <label>Dimensione QR</label>
+                <input type="range" id="qrSize" min="128" max="512" value="256" step="32">
+                <div class="size-display"><span id="sizeValue">256</span>px</div>
+            </div>
+        </div>
+
+        <button class="generate-btn" onclick="generateQR()">
+            ✨ Genera QR Code
+        </button>
+
+        <div id="qrResult" class="qr-result">
+            <h3>Il tuo QR Code è pronto! 🎉</h3>
+            <div id="qrcode"></div>
+            <button class="download-btn" onclick="downloadQR()">
+                📥 Scarica Immagine
+            </button>
+        </div>
+
+        <div class="info-box">
+            <h3>💡 Come funziona?</h3>
+            <p>
+                <strong>1.</strong> Scrivi il testo che vuoi codificare<br>
+                <strong>2.</strong> Scegli la dimensione<br>
+                <strong>3.</strong> Clicca "Genera" e il QR appare istantaneamente<br>
+                <strong>4.</strong> Scarica l'immagine per usarla ovunque
+            </p>
+        </div>
+    </div>
+
+    <!-- Libreria QR Code -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    
+    <script>
+        // Variabile globale per conservare il QR generato
+        let currentQR = null;
+
+        // Aggiorna il display della dimensione in tempo reale
+        document.getElementById('qrSize').addEventListener('input', function() {
+            document.getElementById('sizeValue').textContent = this.value;
+        });
+
+        // Funzione principale per generare il QR
+        function generateQR() {
+            // 1. RACCOLTA DATI - Prendiamo i valori dall'interfaccia
+            const text = document.getElementById('qrText').value.trim();
+            const size = parseInt(document.getElementById('qrSize').value);
+            
+            // 2. VALIDAZIONE - Controlliamo che ci sia qualcosa da codificare
+            if (!text) {
+                alert('⚠️ Scrivi qualcosa prima di generare il QR!');
+                return;
+            }
+
+            // 3. PULIZIA AREA RISULTATO - Resettiamo il contenitore
+            const qrcodeDiv = document.getElementById('qrcode');
+            qrcodeDiv.innerHTML = '';
+
+            try {
+                // 4. GENERAZIONE QR - Qui avviene la magia!
+                currentQR = new QRious({
+                    element: createCanvas(),  // Creiamo un canvas dove disegnare
+                    value: text,              // Il testo da codificare  
+                    size: size,               // Dimensione in pixel
+                    background: 'white',      // Sfondo bianco
+                    foreground: 'black',      // Pattern nero
+                    level: 'M'                // Livello correzione errori (L,M,Q,H)
+                });
+
+                // 5. VISUALIZZAZIONE - Aggiungiamo il QR alla pagina
+                qrcodeDiv.appendChild(currentQR.canvas);
+                
+                // 6. MOSTRA RISULTATO - Rendiamo visibile l'area risultato
+                document.getElementById('qrResult').classList.add('show');
+
+            } catch (error) {
+                // 7. GESTIONE ERRORI - Se qualcosa va storto
+                console.error('Errore nella generazione:', error);
+                alert('❌ Ops! Errore nella generazione del QR');
+            }
+        }
+
+        // Funzione di supporto: crea un elemento canvas pulito
+        function createCanvas() {
+            const canvas = document.createElement('canvas');
+            canvas.style.border = '2px solid #eee';
+            canvas.style.borderRadius = '10px';
+            return canvas;
+        }
+
+        // Funzione per scaricare il QR come immagine
+        function downloadQR() {
+            if (!currentQR) {
+                alert('⚠️ Genera prima un QR code!');
+                return;
+            }
+
+            // Creiamo un link di download temporaneo
+            const link = document.createElement('a');
+            link.download = `qr-code-${Date.now()}.png`;  // Nome file con timestamp
+            link.href = currentQR.toDataURL();            // Converti canvas in immagine
+            
+            // Simuliamo il click per avviare il download
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Bonus: genera QR premendo Ctrl+Enter
+        document.getElementById('qrText').addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                generateQR();
+            }
+        });
+
+        // Auto-focus sul campo testo quando si carica la pagina
+        window.addEventListener('load', function() {
+            document.getElementById('qrText').focus();
+        });
+    </script>
+</body>
+</html>
